@@ -1,0 +1,16 @@
+services:
+  unbound:
+    build: .
+    container_name: unbound
+    ports:
+      - "5301:5301/tcp"
+      - "5301:5301/udp"
+    volumes:
+      - ./unbound.conf:/etc/unbound/unbound.conf
+      - ./root.hints:/etc/unbound/root.hints
+      - ./blacklist.conf:/etc/unbound/blacklist.conf
+      - ./update_blacklist.sh:/usr/local/bin/update_blacklist.sh
+    restart: unless-stopped
+networks:
+  default:
+    driver: bridge
