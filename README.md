@@ -26,4 +26,5 @@ uablacklist.net/domains.txt
   docker rmi idcontainer
   docker compose build
   docker compose up -d
+  docker exec unbound nslookup 193.176.2.1 127.0.0.1:5301
   ```
