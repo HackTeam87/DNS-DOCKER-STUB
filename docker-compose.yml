@@ -1,19 +1,19 @@
 services:
+  # Пример контейнера unbound DNS (если вам это действительно нужно):
   unbound:
     build: .
+    hostname: dns2-happylink-net-ua
     container_name: unbound
     ports:
-      - "5301:5301/tcp"
-      - "5301:5301/udp"
+      - "53:53/tcp"
+      - "53:53/udp"
     volumes:
-      - ./unbound.conf:/etc/unbound/unbound.conf
-      - ./root.hints:/etc/unbound/root.hints
-      - ./blacklist.conf:/etc/unbound/blacklist.conf
-      - ./happylink.zone.conf:/etc/unbound/happylink.zone.conf
-      - ./146-120-101.conf:/etc/unbound/146-120-101.conf
-      - ./193-176-2.conf:/etc/unbound/193-176-2.conf
-      - ./update_blacklist.sh:/usr/local/bin/update_blacklist.sh
-    restart: unless-stopped
-networks:
-  default:
-    driver: bridge
+      - ./unbound:/etc/unbound
+      - ./unbound/certs:/etc/unbound/certs
+      - ./unbound/logs:/var/log/unbound
+    restart: "unless-stopped"
+    # mem_limit: 2g
+    # memswap_limit: 2g
+    # cpus: 2.0
+    environment:
+      - TZ=Europe/Kiev
