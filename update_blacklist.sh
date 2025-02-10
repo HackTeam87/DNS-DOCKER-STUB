@@ -1,13 +1,13 @@
 #!/bin/bash
 
 # Путь к конфигурационному файлу blacklist.conf
-BLACKLIST_FILE="./blacklist.conf"
+BLACKLIST_FILE="./unbound/blacklist.conf"
 
 # URL для загрузки списка доменов
 URL="https://uablacklist.net/domains.txt"
 
 # Домен, на который будет происходить редирект
-REDIRECT_DOMAIN="block_ip.happylink.net.ua"
+REDIRECT_DOMAIN="block.happylink.net.ua"
 
 # Загрузка списка доменов
 echo "Загрузка списка доменов..."
@@ -35,4 +35,9 @@ rm -f domains.txt
 echo "Обновление завершено. Перезапуск контейнера Unbound..."
 #docker-compose restart unbound
 
+#Обновление корневых доменов 
+curl -o ./unbound/root.hints https://www.internic.net/domain/named.root
+echo "Обновление корневых доменов."
+
 echo "Blacklist успешно обновлен и применен."
+
