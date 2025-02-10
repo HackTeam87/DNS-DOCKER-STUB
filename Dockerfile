@@ -1,23 +1,40 @@
-FROM alpine:latest
+# Используем легковесный базовый образ Python
+FROM python:3.11-slim
 
-RUN apk add --no-cache unbound curl
+# Устанавливаем зависимости для Unbound, Python и unbound-host logrotate net-tools iputils-ping lsof 
+RUN apt-get update && apt-get install -y \
+    unbound \
+    curl \
+    dnsutils \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Копируем конфигурационные файлы
-COPY unbound.conf /etc/unbound/unbound.conf
-COPY root.hints /etc/unbound/root.hints
+# Копируем конфигурационные файлы и ключи для Unbound
+COPY unbound/ /etc/unbound/
 
-# A записи
-COPY happylink.zone.conf /etc/unbound/happylink.zone.conf
-COPY blacklist.conf /etc/unbound/blacklist.conf
+# Создаем директорию для логов и даем права
+RUN mkdir -p /var/log/unbound && chown unbound:unbound /var/log/unbound
 
-# PTR записи
-COPY 146-120-101.conf /etc/unbound/146-120-101.conf
-COPY 193-176-2.conf /etc/unbound/193-176-2.conf
+# Копируем конфигурацию для logrotate
+#COPY logrotate/unbound /etc/logrotate.d/unbound
+#RUN echo "0 0 * * * /usr/sbin/logrotate /etc/logrotate.conf" >> /etc/crontab
 
-# Скрипт обновления blacklist
-COPY update_blacklist.sh /usr/local/bin/update_blacklist.sh
-RUN chmod +x /usr/local/bin/update_blacklist.sh
+# Настраиваем rsyslog для отправки логов в Graylog
+# COPY rsyslog/graylog.conf /etc/rsyslog.conf
 
-EXPOSE 5301
+# Создайте пользователя и группу syslog, если они не существуют
+# RUN groupadd -r syslog && useradd -r -g syslog syslog
 
-CMD ["unbound", "-d", "-c", "/etc/unbound/unbound.conf"]
+# Создайте нужную директорию для rsyslog
+#RUN mkdir -p /var/spool/rsyslog && \
+ #   chown syslog:syslog /var/spool/rsyslog && \
+  #  chmod 755 /var/spool/rsyslog
+   
+# Запускаем rsyslog
+#RUN echo "module(load='imudp')\ninput(type='imudp' port='514')" > /etc/rsyslog.conf
+
+# Открываем порты
+EXPOSE 53
+
+# Команда для запуска Unbound, rsyslog и Python-скрипта
+#CMD sh -c "rsyslogd && unbound -d -c /etc/unbound/unbound.conf"
+CMD sh -c "unbound -d -c /etc/unbound/unbound.conf"
